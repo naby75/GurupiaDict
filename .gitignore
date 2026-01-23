@@ -1,0 +1,33 @@
+# GurupiaDict Project
+
+# DB files (large)
+*.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Node modules
+node_modules/
+
+# Build artifacts
+target/
+*.exe
+
+# Large data files
+*.xml
+*.xml.bz2
+*.jsonl
+mdn_data/
+so_data/
+dotnet_data/
+rust_data/
+win32dict_data/
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

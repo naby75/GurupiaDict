@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\repos\GurupiaDict\gurupia-synthesizer\query.py", line 274, in main
+    print(f"\U0001f4ca Database Statistics:")
+UnicodeEncodeError: 'cp949' codec can't encode character '\U0001f4ca' in position 0: illegal multibyte sequence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\repos\GurupiaDict\gurupia-synthesizer\query.py", line 311, in <module>
+    main()
+  File "C:\repos\GurupiaDict\gurupia-synthesizer\query.py", line 306, in main
+    print(f"\u274c Error: {e}")
+UnicodeEncodeError: 'cp949' codec can't encode character '\u274c' in position 0: illegal multibyte sequence

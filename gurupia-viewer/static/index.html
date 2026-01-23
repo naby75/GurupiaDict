@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GurupiaDict - 연결된 지식, 깨어있는 지혜</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">
+                <span class="logo-icon">🕸️</span>
+                <span class="logo-text">GurupiaDict</span>
+            </h1>
+            <p class="tagline">연결된 지식, 깨어있는 지혜</p>
+
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="검색어를 입력하세요... (예: 인공지능, 딥러닝)"
+                    autofocus>
+                <button id="webSearchBtn" class="web-search-btn" title="웹에서 검색">🌐 웹검색</button>
+                <button id="randomBtn" class="random-btn" title="랜덤 문서">🎲</button>
+            </div>
+
+            <!-- TTS Controls -->
+            <div class="tts-controls" id="ttsControls">
+                <button id="ttsPlayBtn" class="tts-btn" title="읽기 시작">▶️ 읽기</button>
+                <button id="ttsPauseBtn" class="tts-btn" title="일시정지" style="display: none;">⏸️ 일시정지</button>
+                <button id="ttsResumeBtn" class="tts-btn" title="계속" style="display: none;">▶️ 계속</button>
+                <button id="ttsStopBtn" class="tts-btn" title="정지">⏹️ 정지</button>
+                <select id="ttsSpeed" class="tts-select" title="속도">
+                    <option value="0.75">0.75x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                </select>
+                <select id="ttsVoice" class="tts-select" title="음성"></select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Search Results Sidebar -->
+        <aside class="sidebar sidebar-left" id="searchResults">
+            <div class="sidebar-header">
+                <h2>📖 검색 결과</h2>
+            </div>
+            <div class="sidebar-content">
+                <div class="welcome-message">
+                    <p>🔍 검색어를 입력하여 문서를 찾아보세요</p>
+                    <p class="hint">또는 🎲 버튼으로 랜덤 문서를 탐색하세요!</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Article Content -->
+        <article class="article-content" id="articleContent">
+            <div class="welcome-screen">
+                <div class="welcome-icon">🕸️</div>
+                <h2>GurupiaDict에 오신 것을 환영합니다!</h2>
+                <p class="welcome-description">
+                    위키백과 기반의 지식 그래프를 탐색하세요.<br>
+                    검색창에 단어를 입력하거나, 🎲 버튼으로 랜덤 문서를 만나보세요.
+                </p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">🔍</span>
+                        <span>실시간 검색</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🔗</span>
+                        <span>Backlink 탐색</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">⚡</span>
+                        <span>초고속 검색</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Backlinks Sidebar -->
+        <aside class="sidebar sidebar-right" id="linksPanel">
+            <div class="sidebar-header">
+                <h2>🔗 연결 정보</h2>
+            </div>
+            <div class="sidebar-content">
+                <div class="info-message">
+                    <p>문서를 선택하면 관련 링크가 표시됩니다</p>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <button id="darkModeToggle" class="dark-mode-toggle" title="다크모드 전환">
+                <span class="icon-light">☀️</span>
+                <span class="icon-dark">🌙</span>
+            </button>
+            <div class="stats" id="stats">
+                <span id="totalArticles">문서: -</span>
+                <span id="totalLinks">링크: -</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>로딩 중...</p>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

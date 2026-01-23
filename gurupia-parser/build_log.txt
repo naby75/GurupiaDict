@@ -1,0 +1,33 @@
+   Compiling gurupia-parser v0.1.0 (C:\repos\GurupiaDict\gurupia-parser)
+warning: unused import: `std::path::Path`
+ --> src\main.rs:8:5
+  |
+8 | use std::path::Path;
+  |     ^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0716]: temporary value dropped while borrowed
+  --> src\main.rs:83:56
+   |
+83 |                 let tag_name = String::from_utf8_lossy(e.name().as_ref());
+   |                                                        ^^^^^^^^          - temporary value is freed at the end of this statement
+   |                                                        |
+   |                                                        creates a temporary value which is freed while still in use
+84 |                 
+85 |                 if tag_name == "page" {
+   |                    -------- borrow later used here
+   |
+   = note: consider using a `let` binding to create a longer lived value
+
+warning: unused variable: `file_size`
+  --> src\main.rs:52:9
+   |
+52 |     let file_size = file.metadata()?.len();
+   |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_file_size`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+For more information about this error, try `rustc --explain E0716`.
+warning: `gurupia-parser` (bin "gurupia-parser") generated 2 warnings
+error: could not compile `gurupia-parser` (bin "gurupia-parser") due to 1 previous error; 2 warnings emitted
