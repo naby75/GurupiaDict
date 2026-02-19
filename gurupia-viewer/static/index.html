@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GurupiaDict - 연결된 지식, 깨어있는 지혜</title>
     <link rel="stylesheet" href="/static/style.css">
-    <!-- Syntax Highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- Syntax Highlighting (로컬 번들 #14) -->
+    <link rel="stylesheet" href="/static/vendor/github-dark.min.css">
+    <script src="/static/vendor/highlight.min.js"></script>
 </head>
 
 <body>
@@ -120,8 +120,8 @@
         <p>로딩 중...</p>
     </div>
 
-    <!-- XSS 방어 (#8) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+    <!-- XSS 방어 - 로컬 번들 (#8, #14) -->
+    <script src="/static/vendor/purify.min.js"></script>
     <script src="/static/app.js"></script>
 </body>
 

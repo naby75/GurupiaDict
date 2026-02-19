@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap');
+/* 오프라인 대응 (#14): Google Fonts \ub300\uc2e0 \uc2dc\uc2a4\ud15c \ud3f0\ud2b8 \uc2a4\ud0dd \uc0ac\uc6a9 */
+/* Outfit \ub300\uccb4: Inter > Segoe UI > \uc2dc\uc2a4\ud15c \uae30\ubcf8 sans-serif */
+/* Fira Code \ub300\uccb4: Cascadia Code > Consolas > \uc2dc\uc2a4\ud15c monospace */
 
 :root {
     --bg-primary: #0a0e27;
@@ -30,7 +32,7 @@
 }
 
 body {
-    font-family: 'Outfit', 'Segoe UI', sans-serif;
+    font-family: 'Outfit', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1d3a 100%);
     color: var(--text-primary);
     line-height: 1.6;
