@@ -40,9 +40,17 @@ class GurupiaViewer {
         document.getElementById('webSearchBtn').addEventListener('click', () => this.webSearch());
 
         // Dark mode toggle (currently always dark, but ready for future)
+        // Dark mode toggle (#10: 라이트 모드 구현)
         document.getElementById('darkModeToggle').addEventListener('click', () => {
-            alert('다크모드가 기본입니다! 라이트 모드는 추후 지원 예정입니다. 😊');
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
         });
+
+        // 저장된 테마 복원
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+        }
 
         // Handle browser back/forward
         window.addEventListener('popstate', (e) => {
@@ -339,7 +347,15 @@ class GurupiaViewer {
     }
 
     processHtml(html) {
-        // Already processed by backend, just return
+        // #8: DOMPurify로 XSS 방어
+        if (typeof DOMPurify !== 'undefined') {
+            return DOMPurify.sanitize(html, {
+                ALLOWED_TAGS: ['p', 'br', 'a', 'strong', 'em', 'code', 'pre', 'mark',
+                    'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'table',
+                    'tr', 'td', 'th', 'thead', 'tbody', 'span', 'div', 'img'],
+                ALLOWED_ATTR: ['href', 'class', 'src', 'alt', 'title']
+            });
+        }
         return html;
     }
 

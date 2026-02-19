@@ -149,6 +149,16 @@ class GurupiaQuery:
         """, (query, limit))
         
         return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_random_title(self) -> Optional[str]:
+        """랜덤 문서 제목 반환 (#2 app.py 일관성 지원)"""
+        self.cursor.execute("""
+            SELECT title FROM Nodes
+            ORDER BY RANDOM()
+            LIMIT 1
+        """)
+        row = self.cursor.fetchone()
+        return row['title'] if row else None
 
 
 def print_article(article: Dict, query_tool: GurupiaQuery):

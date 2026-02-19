@@ -617,3 +617,41 @@ body {
         font-size: 2rem;
     }
 }
+
+/* Light Mode (#10) */
+body.light-mode {
+    --bg-primary: #f0f2f5;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e4e6eb;
+    --bg-glass: rgba(255, 255, 255, 0.9);
+
+    --text-primary: #1c1e21;
+    --text-secondary: #606770;
+    --text-muted: #8a8d91;
+
+    --accent-primary: #1a73e8;
+    --accent-secondary: #174ea6;
+    --accent-green: #137333;
+    --accent-purple: #7b1fa2;
+    --accent-orange: #e65100;
+
+    --border-color: rgba(0, 0, 0, 0.12);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #e8eaf0 100%);
+}
+
+body.light-mode .article-body pre {
+    background: #f6f8fa;
+    border-color: var(--border-color);
+}
+
+body.light-mode .article-body code {
+    color: #24292f;
+}
+
+body.light-mode .copy-btn {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}

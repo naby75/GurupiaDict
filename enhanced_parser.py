@@ -10,7 +10,7 @@ import json
 import re
 from pathlib import Path
 from lxml import etree
-from multiprocessing import Pool, cpu_count
+from os import cpu_count
 import time
 
 class WikiCleaner:

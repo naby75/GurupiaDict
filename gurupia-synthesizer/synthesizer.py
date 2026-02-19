@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GurupiaDict Synthesizer v0.1.0
+GurupiaDict Synthesizer v0.2.0
 Converts JSONL output from Gurupia-Parser into a searchable SQLite knowledge graph.
 
 Features:
@@ -8,6 +8,8 @@ Features:
 - Creates bidirectional edge table for backlink support
 - Converts wiki markup to HTML with dict:// internal links
 - Builds FTS5 full-text search index
+- Batch commit strategy for large-scale imports (#6)
+- Inherits query methods from GurupiaQuery (#7)
 """
 
 import argparse
@@ -17,6 +19,8 @@ import sqlite3
 import sys
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
+
+from query import GurupiaQuery
 
 
 class WikiLink:
@@ -30,27 +34,19 @@ class WikiLink:
         return f"WikiLink({self.target!r}, {self.display!r})"
 
 
-class GurupiaSynthesizer:
-    """Main synthesizer class for building the knowledge graph"""
+class GurupiaSynthesizer(GurupiaQuery):
+    """Main synthesizer class for building the knowledge graph.
     
-    def __init__(self, db_path: str):
-        self.db_path = db_path
-        self.conn: sqlite3.Connection = None
-        self.cursor: sqlite3.Cursor = None
-        
-    def __enter__(self):
-        self.connect()
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.conn:
-            self.conn.close()
+    GurupiaQuery를 상속하여 읽기 쿼리 메서드 중복을 제거합니다 (#7).
+    쓰기 전용 로직(스키마 생성, JSONL 임포트, HTML 변환)만 이 클래스에 정의합니다.
+    """
     
     def connect(self):
-        """Connect to SQLite database"""
-        self.conn = sqlite3.connect(self.db_path)
-        self.conn.row_factory = sqlite3.Row
-        self.cursor = self.conn.cursor()
+        """Connect to SQLite database with WAL mode for write performance (#6)"""
+        super().connect()
+        # WAL 모드: 읽기/쓰기 동시성 향상 + 쓰기 성능 개선
+        self.cursor.execute("PRAGMA journal_mode=WAL")
+        self.cursor.execute("PRAGMA synchronous=NORMAL")
         
     def create_schema(self):
         """Create database schema with FTS5 search support"""
@@ -243,6 +239,10 @@ class GurupiaSynthesizer:
                         
                         if nodes_count % 100 == 0:
                             print(f"\r📊 Processed: {nodes_count} nodes, {edges_count} edges", end='', flush=True)
+                        
+                        # 1,000건마다 중간 커밋 — 장애 시 손실 최소화 (#6)
+                        if nodes_count % 1000 == 0:
+                            self.conn.commit()
                     
                     except sqlite3.IntegrityError as e:
                         print(f"\n⚠️  Duplicate title at line {line_num}: {title}")
@@ -252,66 +252,13 @@ class GurupiaSynthesizer:
                     print(f"\n❌ JSON error at line {line_num}: {e}")
                     continue
         
-        self.conn.commit()
+        self.conn.commit()  # 잔여분 최종 커밋
         print(f"\n✅ Imported {nodes_count} nodes and {edges_count} edges")
         
         return nodes_count, edges_count
     
-    def get_backlinks(self, title: str, limit: int = 10) -> List[str]:
-        """
-        Get articles that reference this title (backlinks)
-        
-        This is the "expert option" mentioned in the design doc!
-        """
-        self.cursor.execute("""
-            SELECT DISTINCT n.title
-            FROM Edges e
-            JOIN Nodes n ON e.source_id = n.id
-            WHERE e.target_title = ?
-            ORDER BY n.title
-            LIMIT ?
-        """, (title, limit))
-        
-        return [row['title'] for row in self.cursor.fetchall()]
-    
-    def search_titles(self, query: str, limit: int = 10) -> List[Dict]:
-        """
-        Prefix search on titles using FTS5
-        """
-        self.cursor.execute("""
-            SELECT n.id, n.title, snippet(NodesFTS, 1, '<mark>', '</mark>', '...', 30) as snippet
-            FROM NodesFTS
-            JOIN Nodes n ON NodesFTS.rowid = n.id
-            WHERE NodesFTS MATCH ?
-            ORDER BY rank
-            LIMIT ?
-        """, (f"{query}*", limit))
-        
-        return [dict(row) for row in self.cursor.fetchall()]
-    
-    def get_statistics(self) -> Dict:
-        """Get database statistics"""
-        stats = {}
-        
-        # Total nodes
-        self.cursor.execute("SELECT COUNT(*) as count FROM Nodes")
-        stats['total_nodes'] = self.cursor.fetchone()['count']
-        
-        # Total edges
-        self.cursor.execute("SELECT COUNT(*) as count FROM Edges")
-        stats['total_edges'] = self.cursor.fetchone()['count']
-        
-        # Most referenced articles
-        self.cursor.execute("""
-            SELECT target_title, COUNT(*) as ref_count
-            FROM Edges
-            GROUP BY target_title
-            ORDER BY ref_count DESC
-            LIMIT 10
-        """)
-        stats['most_referenced'] = [dict(row) for row in self.cursor.fetchall()]
-        
-        return stats
+    # 읽기 전용 쿼리 메서드(get_backlinks, search_titles, get_statistics)는
+    # GurupiaQuery에서 상속받아 사용합니다 (#7)
 
 
 def main():
