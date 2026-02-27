@@ -21,11 +21,13 @@
 - ✅ Rust 표준 라이브러리 26개 타입 (실문서 크롤링)
 - ✅ **총 3,134개+ 개발자 문서**
 
-### Phase 4: 코드 품질 & 안정성 (v0.2.0)
+### Phase 4: 코드 품질 & 보안/안정성 하드닝 (v0.2.0)
 - ✅ `LazyLock` Regex 캐싱 — 파싱 성능 대폭 향상
 - ✅ UTF-8 안전 절단 (한국어 패닉 수정)
 - ✅ WAL 모드 + 배치 커밋 — DB 쓰기 안정성
-- ✅ DOMPurify XSS 방어
+- ✅ DOMPurify XSS 방어 및 Path Traversal 공격 차단
+- ✅ SQLite FTS5 검색 쿼리 Zero Trust 인젝션 방어
+- ✅ 인스톨러 배포망 의존성 고정 (Supply Chain Security) 및 Orphan Process 킬
 - ✅ 라이트 모드 완전 구현
 - ✅ 완전 오프라인 동작 (CDN → 로컬 vendor)
 - ✅ 릴리즈 배포 (포터블 ZIP + 설치 스크립트)

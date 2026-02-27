@@ -15,17 +15,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **[빌드]** `Cargo.toml` edition `"2024"` → `"2021"` (stable 컴파일러 호환), `rust-version = "1.80"` MSRV 명시
 - **[버전]** v0.1.0 → v0.2.0
 
-### 🐍 Gurupia-Synthesizer (Python)
+### 🐍 Gurupia-Synthesizer & Query (Python)
 #### Changed
 - **[성능]** `PRAGMA journal_mode=WAL` + `PRAGMA synchronous=NORMAL` 적용 — 쓰기 성능 대폭 향상
 - **[안정성]** 1,000건마다 중간 커밋 — 장애 시 데이터 손실 최소화
 - **[아키텍처]** `GurupiaSynthesizer`가 `GurupiaQuery`를 상속 — 중복 메서드(`get_backlinks`, `get_statistics`, `search_titles`) 제거
+- **[보안]** FTS5 쿼리에 Zero Trust 방어벽 구축 — 따옴표 등 특수기호 입력시 발생하는 `SQL OperationalError` (인젝션 공격) 원천 차단
 #### Added
 - `GurupiaQuery.get_random_title()` 메서드 추가
 
 ### 🌐 Gurupia-Viewer (Flask + Vanilla JS)
 #### Changed
-- **[보안]** `app.config['DB_PATH']` 전환 — 전역 변수 `db_path` 제거
+- **[보안]** `app.config['DB_PATH']` 전환 — 전역 변수 `db_path` 제거 및 Race Condition 차단
+- **[보안]** Path Traversal (경로 탐색) 공격 방어 — 허용된 DB 확장자 화이트리스트 검사 추가
 - **[보안]** 모든 라우트가 `GurupiaQuery` 컨텍스트 매니저 통일 사용 (`api_random()` 포함)
 - **[보안]** `DOMPurify.sanitize()` 적용 — `innerHTML` XSS 방어
 - **[UX]** 라이트 모드 구현 — CSS 변수 오버라이드 + 토글 버튼 + `localStorage` 저장
@@ -37,7 +39,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 #### Removed
 - 중복 `/static/<path>` 라우트 제거 (Flask auto-serving 활용)
 
-### 🔧 기타
+### 🔧 설치 및 기타 (Installer/Scraper)
+- **[보안]** `install.bat` 및 `gurupia_inno.iss`: `flask==3.0.3` 버전 명시적 고정으로 공급망 보안(Supply Chain Security) 강화
+- **[안정성]** 언인스톨러 진행시 활성화된 `gurupia-parser.exe` 혹은 Python 뷰어 잔여 프로세스를 자동으로 강제 종료(`taskkill`)하여 깔끔한 파일 삭제 보장
 - `enhanced_parser.py`: 미사용 `from multiprocessing import Pool` 제거
 - `.gitignore`: `!SampleDict.db` 예외 추가 (샘플 DB 추적)
 - `scrape_rust.js`: 더미 데이터 → `doc.rust-lang.org` 실제 크롤링 전환 (26개 Rust 표준 라이브러리 타입)
