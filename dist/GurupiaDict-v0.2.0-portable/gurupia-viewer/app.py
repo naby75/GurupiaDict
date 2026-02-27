@@ -129,19 +129,13 @@ def main():
     
     args = parser.parse_args()
     
-    # Validate database (Path Traversal 방어를 위한 Zero Trust 검증)
-    db_path = Path(args.database).resolve()
-    
-    if not db_path.exists() or not db_path.is_file():
-        print(f"❌ Database file not found: {args.database}")
-        sys.exit(1)
-        
-    if db_path.suffix.lower() not in ['.db', '.sqlite', '.sqlite3']:
-        print(f"❌ Invalid database file extension: {args.database}")
+    # Validate database
+    if not Path(args.database).exists():
+        print(f"❌ Database not found: {args.database}")
         sys.exit(1)
     
     # #2: app.config에 DB 경로 저장 (전역 변수 대신)
-    app.config['DB_PATH'] = str(db_path)
+    app.config['DB_PATH'] = args.database
     
     print("\n" + "="*60)
     print("🌐 GurupiaDict Web Viewer")

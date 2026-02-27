@@ -49,7 +49,7 @@ echo     OK (%PYTHON% 사용)
 
 :: ── Step 2: Flask 설치 ───────────────────────────────────────
 echo [2/6] Flask 의존성 설치 중...
-%PYTHON% -m pip install flask --quiet
+%PYTHON% -m pip install flask==3.0.3 --quiet
 if %ERRORLEVEL% NEQ 0 (
     echo ERROR: pip install flask 실패
     pause & exit /b 1
@@ -139,6 +139,9 @@ echo [6/6] 언인스톨러 등록 중...
 :: 언인스톨 배치 파일 생성
 (
     echo @echo off
+    echo echo GurupiaDict 프로세스 종료 중...
+    echo taskkill /F /IM gurupia-parser.exe 2^>nul 1^>nul
+    echo taskkill /F /IM python.exe /FI "WINDOWTITLE eq GurupiaDict*" 2^>nul 1^>nul
     echo echo GurupiaDict 제거 중...
     echo rmdir /s /q "%INSTALL_DIR%"
     echo del /f /q "%USERPROFILE%\Desktop\GurupiaDict.lnk" 2^>nul

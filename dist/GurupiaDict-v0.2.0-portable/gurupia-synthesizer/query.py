@@ -43,15 +43,11 @@ class GurupiaQuery:
     
     def search_titles(self, query: str, limit: int = 10) -> List[Dict]:
         """
-        Prefix search on titles using FTS5 (Zero Trust Input 적용)
+        Prefix search on titles using FTS5
         
         Example:
             search_titles("컴퓨") -> ["컴퓨터", "컴퓨터 과학", ...]
         """
-        # FTS5 인젝션 방어: 겹따옴표 포장 및 텍스트 내부 따옴표 이스케이프
-        safe_query = query.replace('"', '""')
-        match_expr = f'"{safe_query}"*'
-        
         self.cursor.execute("""
             SELECT n.id, n.title
             FROM NodesFTS
@@ -59,7 +55,7 @@ class GurupiaQuery:
             WHERE NodesFTS.title MATCH ?
             ORDER BY rank
             LIMIT ?
-        """, (match_expr, limit))
+        """, (f"{query}*", limit))
         
         return [dict(row) for row in self.cursor.fetchall()]
     
@@ -139,11 +135,7 @@ class GurupiaQuery:
         return stats
     
     def full_text_search(self, query: str, limit: int = 10) -> List[Dict]:
-        """Search both title and content (Zero Trust Input 적용)"""
-        # FTS5 인젝션 방어
-        safe_query = query.replace('"', '""')
-        match_expr = f'"{safe_query}"*'
-        
+        """Search both title and content"""
         self.cursor.execute("""
             SELECT 
                 n.id, 
@@ -154,7 +146,7 @@ class GurupiaQuery:
             WHERE NodesFTS MATCH ?
             ORDER BY rank
             LIMIT ?
-        """, (match_expr, limit))
+        """, (query, limit))
         
         return [dict(row) for row in self.cursor.fetchall()]
     

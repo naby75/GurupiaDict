@@ -58,8 +58,11 @@ Name: "{group}\GurupiaDict"; Filename: "{app}\viewer_sample.bat"; WorkingDir: "{
 Name: "{group}\GurupiaDict 제거"; Filename: "{uninstallexe}"; Tasks: startmenuicon
 
 [Run]
-Filename: "py"; Parameters: "-3 -m pip install flask --quiet"; StatusMsg: "Flask 설치 중..."; Flags: runhidden waituntilterminated; Check: PythonExists
+Filename: "py"; Parameters: "-3 -m pip install flask==3.0.3 --quiet"; StatusMsg: "Flask 설치 중..."; Flags: runhidden waituntilterminated; Check: PythonExists
 Filename: "{app}\viewer_sample.bat"; Description: "지금 GurupiaDict 실행하기"; Flags: nowait postinstall skipifsilent
+
+[UninstallRun]
+Filename: "taskkill"; Parameters: "/F /IM gurupia-parser.exe"; Flags: runhidden skipifdoesntexist
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
