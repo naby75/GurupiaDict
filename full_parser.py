@@ -7,31 +7,41 @@ Complete Wikipedia XML parser - stores FULL articles
 import sys
 import json
 import re
+import logging
 from pathlib import Path
 from lxml import etree
+
+# 1.2 정규식(Regex) 전역 모듈 레벨 캐싱
+RE_FILE = re.compile(r'\[\[(?:File|파일|Image|그림):[^\]]*\]\]')
+RE_REF = re.compile(r'<ref[^>]*>.*?</ref>', flags=re.DOTALL)
+RE_COMMENT = re.compile(r'<!--.*?-->', flags=re.DOTALL)
+RE_HTML = re.compile(r'<[^>]+>')
+RE_INFOBOX = re.compile(r'\{\{정보상자[^}]*\}\}', flags=re.DOTALL)
+RE_NEWLINES = re.compile(r'\n{3,}')
+RE_SPACES = re.compile(r' {2,}')
 
 def clean_wiki_markup(text):
     """Remove wiki markup noise while preserving structure"""
     # Remove File/Image references
-    text = re.sub(r'\[\[(?:File|파일|Image|그림):[^\]]*\]\]', '', text)
+    text = RE_FILE.sub('', text)
     
     # Remove <ref>...</ref> tags
-    text = re.sub(r'<ref[^>]*>.*?</ref>', '', text, flags=re.DOTALL)
+    text = RE_REF.sub('', text)
     
     # Remove HTML comments
-    text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
+    text = RE_COMMENT.sub('', text)
     
     # Remove HTML tags
-    text = re.sub(r'<[^>]+>', '', text)
+    text = RE_HTML.sub('', text)
     
     # Remove infoboxes (but keep other templates for now)
-    text = re.sub(r'\{\{정보상자[^}]*\}\}', '', text, flags=re.DOTALL)
+    text = RE_INFOBOX.sub('', text)
     
     # Clean up multiple newlines
-    text = re.sub(r'\n{3,}', '\n\n', text)
+    text = RE_NEWLINES.sub('\n\n', text)
     
     # Clean up multiple spaces
-    text = re.sub(r' {2,}', ' ', text)
+    text = RE_SPACES.sub(' ', text)
     
     return text.strip()
 
@@ -49,9 +59,13 @@ def parse_wikipedia_xml(input_path, output_path):
     page_count = 0
     processed_count = 0
     
-    with open(output_path, 'w', encoding='utf-8') as out_file:
+    # 3.1 XML Bomb 방어를 위해 엔티티 확장 비활성화 (Zero Trust)
+    safe_parser = etree.XMLParser(resolve_entities=False, recover=True)
+    
+    # 2.1 File 핸들 라이프사이클 명시적 통제
+    with open(input_path, 'rb') as in_file, open(output_path, 'w', encoding='utf-8') as out_file:
         # Use iterparse for memory efficiency
-        context = etree.iterparse(input_path, events=('end',), tag='{http://www.mediawiki.org/xml/export-0.11/}page')
+        context = etree.iterparse(in_file, events=('end',), tag='{http://www.mediawiki.org/xml/export-0.11/}page', parser=safe_parser)
         
         for event, page in context:
             page_count += 1
@@ -110,7 +124,9 @@ def parse_wikipedia_xml(input_path, output_path):
                     print(f"\r📊 Processed: {processed_count:,} articles (Total pages: {page_count:,})", end='', flush=True)
                 
             except Exception as e:
-                print(f"\n⚠️  Error processing page {page_count}: {e}")
+                # 1.1 스택 트레이스 및 컨텍스트 기록 유지
+                title_for_log = title if 'title' in locals() else "Unknown"
+                logging.exception(f"\n⚠️ Error processing page {page_count}. Title: {title_for_log}")
             
             # Clear element to free memory
             page.clear()
@@ -129,11 +145,18 @@ if __name__ == '__main__':
         print("  python full_parser.py kowiki-latest-pages-articles.xml kowiki_complete.jsonl")
         sys.exit(1)
     
+    
     input_path = sys.argv[1]
     output_path = sys.argv[2]
     
     if not Path(input_path).exists():
         print(f"❌ Input file not found: {input_path}")
+        sys.exit(1)
+        
+    # 3.2 Output Path Traversal 검증 (Least Privilege)
+    output_dir = Path(output_path).parent.resolve()
+    if not output_dir.exists():
+        print(f"❌ 보안 거부: 지정된 출력 디렉토리가 존재하지 않거나 접근할 수 없습니다: {output_dir}")
         sys.exit(1)
     
     parse_wikipedia_xml(input_path, output_path)
