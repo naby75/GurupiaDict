@@ -7,32 +7,28 @@ High-performance Wikipedia XML parser using lxml
 import sys
 import json
 import re
+import logging
 from pathlib import Path
 from lxml import etree
 
+# [Phase 4: #3] 전역 정규식 캐싱 - 루프 내 재컴파일 및 GC 부하 방지
+RE_FILE = re.compile(r'\[\[(?:File|파일|Image|그림):[^\]]*\]\]')
+RE_REF = re.compile(r'<ref[^>]*>.*?</ref>', flags=re.DOTALL)
+RE_COMMENT = re.compile(r'<!--.*?-->', flags=re.DOTALL)
+RE_HTML = re.compile(r'<[^>]+>')
+RE_INFOBOX = re.compile(r'\{\{[^}]*\}\}', flags=re.DOTALL)
+RE_NEWLINES = re.compile(r'\n{3,}')
+RE_SPACES = re.compile(r' {2,}')
+
 def clean_wiki_markup(text):
     """Remove wiki markup noise"""
-    # Remove File/Image references
-    text = re.sub(r'\[\[(?:File|파일|Image|그림):[^\]]*\]\]', '', text)
-    
-    # Remove <ref>...</ref> tags
-    text = re.sub(r'<ref[^>]*>.*?</ref>', '', text, flags=re.DOTALL)
-    
-    # Remove HTML comments
-    text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
-    
-    # Remove HTML tags
-    text = re.sub(r'<[^>]+>', '', text)
-    
-    # Remove infoboxes and templates
-    text = re.sub(r'\{\{[^}]*\}\}', '', text, flags=re.DOTALL)
-    
-    # Clean up multiple newlines
-    text = re.sub(r'\n{3,}', '\n\n', text)
-    
-    # Clean up multiple spaces
-    text = re.sub(r' {2,}', ' ', text)
-    
+    text = RE_FILE.sub('', text)
+    text = RE_REF.sub('', text)
+    text = RE_COMMENT.sub('', text)
+    text = RE_HTML.sub('', text)
+    text = RE_INFOBOX.sub('', text)
+    text = RE_NEWLINES.sub('\n\n', text)
+    text = RE_SPACES.sub(' ', text)
     return text.strip()
 
 def extract_first_paragraph(text):
@@ -80,9 +76,12 @@ def parse_wikipedia_xml(input_path, output_path):
     page_count = 0
     processed_count = 0
     
+    # [Phase 4: #1] XML Bomb 방어 (Zero Trust Input)
+    safe_parser = etree.XMLParser(resolve_entities=False, recover=True)
+    
     with open(output_path, 'w', encoding='utf-8') as out_file:
         # Use iterparse for memory efficiency
-        context = etree.iterparse(input_path, events=('end',), tag='{http://www.mediawiki.org/xml/export-0.11/}page')
+        context = etree.iterparse(input_path, events=('end',), tag='{http://www.mediawiki.org/xml/export-0.11/}page', parser=safe_parser)
         
         for event, page in context:
             page_count += 1
@@ -150,7 +149,9 @@ def parse_wikipedia_xml(input_path, output_path):
                     print(f"\r📊 Processed: {processed_count:,} articles (Total pages: {page_count:,})", end='', flush=True)
                 
             except Exception as e:
-                print(f"\n⚠️  Error processing page {page_count}: {e}")
+                # [Phase 4: #2] 예외 삼키기 방지 (로깅을 통해 스택 트레이스와 컨텍스트 보존)
+                title_for_log = title if 'title' in locals() else "Unknown"
+                logging.exception(f"\n⚠️ Error processing page {page_count}. Title: {title_for_log}")
             
             # Clear element to free memory
             page.clear()
@@ -174,6 +175,12 @@ if __name__ == '__main__':
     
     if not Path(input_path).exists():
         print(f"❌ Input file not found: {input_path}")
+        sys.exit(1)
+        
+    # [Phase 4: #4] 출력 경로 조작 방지 (Path Traversal 검증)
+    output_dir = Path(output_path).resolve().parent
+    if not output_dir.exists():
+        print(f"❌ 보안 에러: 지정된 출력 디렉토리가 존재하지 않습니다: {output_dir}")
         sys.exit(1)
     
     parse_wikipedia_xml(input_path, output_path)

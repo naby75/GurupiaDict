@@ -140,26 +140,39 @@ function extractDocContent(html, moduleName, typeName) {
  * Rate limit 준수를 위해 요청 간 500ms 딜레이를 적용합니다.
  */
 async function main() {
-    console.log('🦀 GurupiaDict Rust Scraper v0.2.0');
+    console.log('🦀 GurupiaDict Rust Scraper v0.2.1');
     console.log(`📋 Targets: ${TARGETS.length} types\n`);
 
     const outputDir = path.join(process.cwd(), "rust_data");
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
-    const allDocs = [];
+    const outputFile = path.join(outputDir, "rust_reference.jsonl");
+
+    // [Phase 4: #5] 스트리밍 쓰기 방식으로 전환 (메모리 힙 누수 방어)
+    const writeStream = fs.createWriteStream(outputFile, { flags: 'w', encoding: 'utf8' });
+    let successCount = 0;
+
     for (const target of TARGETS) {
         const doc = await fetchRustDoc(target);
-        if (doc) allDocs.push(doc);
+        if (doc) {
+            // 가져오는 즉시 파일에 기록하고 메모리에서 해제
+            if (!writeStream.write(JSON.stringify(doc) + '\n')) {
+                // 백프레셔(Backpressure) 처리
+                await new Promise(resolve => writeStream.once('drain', resolve));
+            }
+            successCount++;
+        }
 
         // Rate limit: 500ms 딜레이
         await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    const outputFile = path.join(outputDir, "rust_reference.jsonl");
-    const jsonl = allDocs.map(doc => JSON.stringify(doc)).join('\n');
-    fs.writeFileSync(outputFile, jsonl + '\n', 'utf8');
+    // 스트림 정상 종료
+    writeStream.end();
 
-    console.log(`\n✅ Successfully created ${allDocs.length}/${TARGETS.length} Rust reference documents.`);
+    await new Promise(resolve => writeStream.on('finish', resolve));
+
+    console.log(`\n✅ Successfully created ${successCount}/${TARGETS.length} Rust reference documents.`);
     console.log(`📁 Data saved to: ${outputFile}`);
 }
 
